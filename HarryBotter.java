@@ -3,18 +3,19 @@ import robocode.*;
 import java.awt.Color;
 import robocode.util.*;
 import Competicao.EnemyBot;
+import Competicao.Genetica;
 import java.awt.geom.Point2D;
 import org.jpl7.Query;
 import org.jpl7.Term;
 
 /**
- * HarryBotter - a robot by (your name here)
+ * HarryBotter - a robot by (Team Harry)
  */
 public class HarryBotter extends AdvancedRobot
 {
-
 	private boolean movingForward;
 	private boolean inWall;
+	private int timeAfterShot = 0;
 	private byte radarDirection = 1;
 	private Query q;
 	
@@ -26,6 +27,7 @@ public class HarryBotter extends AdvancedRobot
 	private float notSoCloseEnemy = 100;
 
 	private EnemyBot enemy = new EnemyBot();
+	private Genetica genetica = new Genetica();
 	
 	public void run() {
 
@@ -75,14 +77,32 @@ public class HarryBotter extends AdvancedRobot
 				setTurnRadarRight(360);			
 			}
 			
-			doGun();
-			doScanner();
+			shoot();
+			scan();
 			
 			
 			//doMovement();
 			
 			execute();
+			
+			timeAfterShot += 1;
+			
+			if(timeAfterShot % 10 == 0) {
+				genetica.loadNextGene(timeAfterShot);
+				updateGenetica();
+			}
+				
+		
 		}
+	}
+	
+	public void updateGenetica() {
+	
+		nearWall = genetica.getNearWall();
+		distanceEnemy = genetica.getDistanceEnemy();
+		aim = genetica.getAim();
+		closeEnemy = genetica.getCloseEnemy();
+		notSoCloseEnemy = genetica.getNotSoCloseEnemy();
 	}
 
 	public void onScannedRobot(ScannedRobotEvent e) {
@@ -116,7 +136,7 @@ public class HarryBotter extends AdvancedRobot
 	} 
 
 	
-	void doGun() {
+	void shoot() {
 
 		if (enemy.none())
 			return;
@@ -125,9 +145,9 @@ public class HarryBotter extends AdvancedRobot
 		double bulletSpeed = 20 - firePower * 3;
 		long time = (long)(enemy.getDistance() / bulletSpeed);
 
-		double futureX = enemy.getFutureX(time);
-		double futureY = enemy.getFutureY(time);
-		double absDeg = absoluteBearing(getX(), getY(), futureX, futureY);
+		double nextX = enemy.getFutureX(time);
+		double nextY = enemy.getFutureY(time);
+		double absDeg = absoluteBearing(getX(), getY(), nextX, nextY);
 		
 		setTurnGunRight(normalizeBearing(absDeg - getGunHeading()));
 		
@@ -162,7 +182,7 @@ double absoluteBearing(double x1, double y1, double x2, double y2) {
 		return bearing;
 	}
 	
-	void doScanner() {
+	void scan() {
 		if (enemy.none()) {
 			setTurnRadarRight(36000);
 		} else {
@@ -230,5 +250,7 @@ double absoluteBearing(double x1, double y1, double x2, double y2) {
 	
 		if(e.isMyFault()) 
 			reverseDirection();
+			
+		timeAfterShot = 0;
 	}	
 }

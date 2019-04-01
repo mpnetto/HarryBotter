@@ -3,12 +3,6 @@ package Competicao;
 import robocode.Robot;
 import robocode.ScannedRobotEvent;
 
-/**
- * <p></p>
- *
- * @author Maxim Galushka
- * @since 15.06.12
- */
 public class EnemyBot extends Robot {
 
     private volatile double bearing;
